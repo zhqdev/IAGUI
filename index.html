@@ -84,6 +84,7 @@
         
         .btn-secondary:hover {
             background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
         }
         
         .card {
@@ -212,7 +213,7 @@
                 <span class="block">avec l'IA</span>
             </h1>
             <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-                Créez des boutons et éléments visuels personnalisés pour vos interfaces Roblox avec des gradients, effets etanimations avancés.
+                Créez des boutons et éléments visuels personnalisés pour vos interfaces Roblox avec des gradients, effets et animations avancés.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <button 
@@ -304,7 +305,46 @@
                                             <option value="top">En haut</option>
                                             <option value="left">À gauche</option>
                                             <option value="right">À droite</option>
+                                            <option value="bottom">En bas</option>
+                                            <option value="center">Centré</option>
                                         </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Décalage X de l'image</label>
+                                        <input 
+                                            type="range" 
+                                            id="imageOffsetX" 
+                                            min="-50" 
+                                            max="50" 
+                                            value="0" 
+                                            class="w-full" 
+                                            oninput="updateButton()"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Décalage Y de l'image</label>
+                                        <input 
+                                            type="range" 
+                                            id="imageOffsetY" 
+                                            min="-50" 
+                                            max="50" 
+                                            value="0" 
+                                            class="w-full" 
+                                            oninput="updateButton()"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Opacité de l'image</label>
+                                        <input 
+                                            type="range" 
+                                            id="imageOpacity" 
+                                            min="0" 
+                                            max="1" 
+                                            step="0.1" 
+                                            value="1" 
+                                            class="w-full" 
+                                            oninput="updateButton()"
+                                        >
                                     </div>
                                     <div>
                                         <label class="block text-gray-300 mb-2">Image/Icône</label>
@@ -373,6 +413,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-400 mb-1">Taille</label>
+ソーシャルメディア
                                         <select id="buttonSize" class="select-field text-sm" onchange="updateButton()">
                                             <option value="small">Petit</option>
                                             <option value="normal">Normal</option>
@@ -380,6 +421,27 @@
                                             <option value="xl">Extra Large</option>
                                         </select>
                                     </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1">Style de bordure</label>
+                                    <select id="borderStyle" class="select-field text-sm" onchange="updateButton()">
+                                        <option value="solid">Solide</option>
+                                        <option value="dashed">Tirets</option>
+                                        <option value="dotted">Points</option>
+                                        <option value="none">Aucun</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-400 mb-1 mt-3">Épaisseur de la bordure</label>
+                                    <input 
+                                        type="range" 
+                                        id="borderWidth" 
+                                        min="0" 
+                                        max="10" 
+                                        value="1" 
+                                        class="w-full" 
+                                        oninput="updateButton()"
+                                    >
                                 </div>
                             </div>
 
@@ -409,6 +471,10 @@
                                     <div>
                                         <label class="block text-xs text-gray-400 mb-1">Couleur du texte</label>
                                         <input type="color" id="textColor" class="w-full h-8 border border-gray-600 rounded" value="#FFFFFF" onchange="updateButton()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Couleur de la bordure</label>
+                                        <input type="color" id="borderColor" class="w-full h-8 border border-gray-600 rounded" value="#00A2FF" onchange="updateButton()">
                                     </div>
                                 </div>
                                 
@@ -454,6 +520,12 @@
                                         <label class="flex items-center">
                                             <input type="checkbox" id="animatedEffect" class="mr-2" onchange="updateButton()">
                                             <span class="text-gray-300">Animation</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="hoverEffect" class="mr-2" onchange="updateButton()">
+                                            <span class="text-gray-300">Effet Hover</span>
                                         </label>
                                     </div>
                                     <div>
@@ -662,13 +734,20 @@
             color1: "#00A2FF",
             color2: "#8B5CF6",
             iconPosition: "top",
-            textSize: 22, // New property for text size
-            iconSize: 35, // New property for icon/emoji size
+            textSize: 22,
+            iconSize: 35,
+            imageOffsetX: 0,
+            imageOffsetY: 0,
+            imageOpacity: 1,
+            borderStyle: "solid",
+            borderWidth: 1,
+            borderColor: "#00A2FF",
             effects: {
                 glow: false,
                 shadow: false,
                 stroke: false,
-                animated: false
+                animated: false,
+                hover: false
             },
             intensity: 50
         };
@@ -676,11 +755,24 @@
         let ctx = null;
         let loadedImage = null;
         let animationFrame = null;
+        let isHovering = false;
 
         // Initialize canvas
         function initCanvas() {
             canvas = document.getElementById('buttonCanvas');
             ctx = canvas.getContext('2d');
+            canvas.addEventListener('mouseenter', () => {
+                if (currentButton.effects.hover) {
+                    isHovering = true;
+                    updateButton();
+                }
+            });
+            canvas.addEventListener('mouseleave', () => {
+                if (currentButton.effects.hover) {
+                    isHovering = false;
+                    updateButton();
+                }
+            });
             createPresetButton('play');
         }
 
@@ -714,7 +806,13 @@
                     color2: "#0080CC",
                     iconPosition: "left",
                     textSize: 22,
-                    iconSize: 35
+                    iconSize: 35,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    imageOpacity: 1,
+                    borderStyle: "solid",
+                    borderWidth: 1,
+                    borderColor: "#00A2FF"
                 },
                 shop: {
                     text: "SHOP",
@@ -725,7 +823,13 @@
                     color2: "#7C3AED",
                     iconPosition: "left",
                     textSize: 22,
-                    iconSize: 35
+                    iconSize: 35,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    imageOpacity: 1,
+                    borderStyle: "solid",
+                    borderWidth: 1,
+                    borderColor: "#8B5CF6"
                 },
                 settings: {
                     text: "SETTINGS",
@@ -736,7 +840,13 @@
                     color2: "#059669",
                     iconPosition: "left",
                     textSize: 22,
-                    iconSize: 35
+                    iconSize: 35,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    imageOpacity: 1,
+                    borderStyle: "solid",
+                    borderWidth: 1,
+                    borderColor: "#10B981"
                 },
                 profile: {
                     text: "PROFILE",
@@ -747,7 +857,13 @@
                     color2: "#D97706",
                     iconPosition: "left",
                     textSize: 22,
-                    iconSize: 35
+                    iconSize: 35,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    imageOpacity: 1,
+                    borderStyle: "solid",
+                    borderWidth: 1,
+                    borderColor: "#F59E0B"
                 },
                 premium: {
                     text: "PREMIUM",
@@ -758,7 +874,13 @@
                     color2: "#FFA500",
                     iconPosition: "left",
                     textSize: 22,
-                    iconSize: 35
+                    iconSize: 35,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    imageOpacity: 1,
+                    borderStyle: "solid",
+                    borderWidth: 1,
+                    borderColor: "#FFD700"
                 },
                 exit: {
                     text: "SORTIR",
@@ -769,12 +891,18 @@
                     color2: "#DC2626",
                     iconPosition: "left",
                     textSize: 22,
-                    iconSize: 35
+                    iconSize: 35,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    imageOpacity: 1,
+                    borderStyle: "solid",
+                    borderWidth: 1,
+                    borderColor: "#EF4444"
                 }
             };
 
             const preset = presets[type] || presets.play;
-            currentButton = { ...currentButton, ...preset };
+            currentButton = { ...currentButton, ...preset, imageUrl: "", emoji: preset.emoji };
             
             document.getElementById('customText').value = currentButton.text;
             document.getElementById('color1').value = currentButton.color1;
@@ -783,14 +911,23 @@
             document.getElementById('iconPosition').value = currentButton.iconPosition;
             document.getElementById('textSize').value = currentButton.textSize;
             document.getElementById('iconSize').value = currentButton.iconSize;
+            document.getElementById('imageOffsetX').value = currentButton.imageOffsetX;
+            document.getElementById('imageOffsetY').value = currentButton.imageOffsetY;
+            document.getElementById('imageOpacity').value = currentButton.imageOpacity;
+            document.getElementById('borderStyle').value = currentButton.borderStyle;
+            document.getElementById('borderWidth').value = currentButton.borderWidth;
+            document.getElementById('borderColor').value = currentButton.borderColor;
+            document.getElementById('imageUrl').value = "";
             
             updateButton();
         }
 
         // Set emoji
         function setEmoji(emoji) {
-            currentButton.emoji = emoji;
-            updateButton();
+            if (!currentButton.imageUrl) { // Only set emoji if no image is loaded
+                currentButton.emoji = emoji;
+                updateButton();
+            }
         }
 
         // Handle image file upload
@@ -814,6 +951,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     currentButton.imageUrl = e.target.result;
+                    currentButton.emoji = ""; // Clear emoji when image is loaded
                     document.getElementById('imageUrl').value = 'Image locale chargée';
                     updateButton();
                     showToast('Image chargée avec succès!', 'success');
@@ -827,8 +965,9 @@
 
         // Set image URL from preset
         function setImageUrl(url) {
-            document.getElementById('imageUrl').value = url;
             currentButton.imageUrl = url;
+            currentButton.emoji = ""; // Clear emoji when image URL is set
+            document.getElementById('imageUrl').value = url;
             updateButton();
         }
 
@@ -859,16 +998,22 @@
             currentButton.iconPosition = document.getElementById('iconPosition').value;
             currentButton.textSize = parseInt(document.getElementById('textSize').value);
             currentButton.iconSize = parseInt(document.getElementById('iconSize').value);
+            currentButton.imageOffsetX = parseInt(document.getElementById('imageOffsetX').value);
+            currentButton.imageOffsetY = parseInt(document.getElementById('imageOffsetY').value);
+            currentButton.imageOpacity = parseFloat(document.getElementById('imageOpacity').value);
+            currentButton.borderStyle = document.getElementById('borderStyle').value;
+            currentButton.borderWidth = parseInt(document.getElementById('borderWidth').value);
+            currentButton.borderColor = document.getElementById('borderColor').value;
             currentButton.effects.glow = document.getElementById('glowEffect').checked;
             currentButton.effects.shadow = document.getElementById('shadowEffect').checked;
             currentButton.effects.stroke = document.getElementById('strokeEffect').checked;
             currentButton.effects.animated = document.getElementById('animatedEffect').checked;
+            currentButton.effects.hover = document.getElementById('hoverEffect').checked;
             currentButton.intensity = document.getElementById('effectIntensity').value;
 
             // Load image if URL provided
             if (currentButton.imageUrl && currentButton.imageUrl !== '' && currentButton.imageUrl !== 'Image locale chargée') {
                 if (currentButton.imageUrl.startsWith('data:image/')) {
-                    // Base64 image from file upload
                     const img = new Image();
                     img.onload = function() {
                         loadedImage = img;
@@ -876,12 +1021,12 @@
                     };
                     img.onerror = function() {
                         loadedImage = null;
+                        currentButton.imageUrl = "";
                         drawAdvancedButton();
                         showToast('Erreur lors du chargement de l\'image.', 'error');
                     };
                     img.src = currentButton.imageUrl;
                 } else {
-                    // External URL
                     const img = new Image();
                     img.crossOrigin = 'anonymous';
                     img.onload = function() {
@@ -891,6 +1036,7 @@
                     };
                     img.onerror = function() {
                         loadedImage = null;
+                        currentButton.imageUrl = "";
                         drawAdvancedButton();
                         showToast('Impossible de charger l\'image depuis cette URL.', 'error');
                     };
@@ -937,6 +1083,13 @@
                 const pulse = 1 + Math.sin(animationTime * 0.005) * 0.1;
                 ctx.translate(canvas.width / 2, canvas.height / 2);
                 ctx.scale(pulse, pulse);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
+            // Hover effect
+            if (currentButton.effects.hover && isHovering) {
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(1.1, 1.1);
                 ctx.translate(-canvas.width / 2, -canvas.height / 2);
             }
 
@@ -1001,6 +1154,24 @@
                 ctx.fill();
             }
 
+            // Border effect
+            if (currentButton.borderStyle !== 'none' && currentButton.borderWidth > 0) {
+                ctx.strokeStyle = currentButton.borderColor;
+                ctx.lineWidth = currentButton.borderWidth;
+                switch(currentButton.borderStyle) {
+                    case 'dashed':
+                        ctx.setLineDash([10, 5]);
+                        break;
+                    case 'dotted':
+                        ctx.setLineDash([2, 5]);
+                        break;
+                    default:
+                        ctx.setLineDash([]);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
             // Stroke effect
             if (currentButton.effects.stroke) {
                 ctx.strokeStyle = currentButton.textColor;
@@ -1014,13 +1185,15 @@
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
 
-            // Calculate content layout based on what we have
-            const hasImage = loadedImage !== null;
-            const hasEmoji = currentButton.emoji && currentButton.emoji !== '';
+            // Calculate content layout
+            const hasImage = loadedImage !== null && currentButton.imageUrl;
+            const hasEmoji = currentButton.emoji && currentButton.emoji !== '' && !hasImage;
             const hasText = currentButton.text && currentButton.text !== '';
             const iconPosition = currentButton.iconPosition;
             const textSize = currentButton.textSize;
             const iconSize = currentButton.iconSize;
+            const imageOffsetX = currentButton.imageOffsetX;
+            const imageOffsetY = currentButton.imageOffsetY;
 
             let textX = x + width / 2;
             let textY = y + height / 2;
@@ -1029,47 +1202,64 @@
             if (hasImage || hasEmoji) {
                 const contentSpacing = height * 0.05;
 
-                if (iconPosition === 'top') {
-                    // Icon on top, text below
-                    iconY = y + height * 0.15;
-                    if (hasText) {
-                        textY = iconY + iconSize + contentSpacing;
-                    }
-                    iconX = x + (width - iconSize) / 2;
-                } else if (iconPosition === 'left') {
-                    // Icon on left, text on right
-                    iconX = x + width * 0.1;
-                    iconY = y + (height - iconSize) / 2;
-                    if (hasText) {
-                        textX = x + width * 0.6;
-                        textY = y + height / 2;
-                    }
-                } else if (iconPosition === 'right') {
-                    // Icon on right, text on left
-                    iconX = x + width * 0.5;
-                    iconY = y + (height - iconSize) / 2;
-                    if (hasText) {
-                        textX = x + width * 0.4;
-                        textY = y + height / 2;
-                    }
+                switch(iconPosition) {
+                    case 'top':
+                        iconY = y + height * 0.15 + imageOffsetY;
+                        iconX = x + (width - iconSize) / 2 + imageOffsetX;
+                        if (hasText) {
+                            textY = iconY + iconSize + contentSpacing;
+                        }
+                        break;
+                    case 'bottom':
+                        iconY = y + height * 0.65 + imageOffsetY;
+                        iconX = x + (width - iconSize) / 2 + imageOffsetX;
+                        if (hasText) {
+                            textY = iconY - iconSize - contentSpacing;
+                        }
+                        break;
+                    case 'left':
+                        iconX = x + width * 0.1 + imageOffsetX;
+                        iconY = y + (height - iconSize) / 2 + imageOffsetY;
+                        if (hasText) {
+                            textX = x + width * 0.6;
+                            textY = y + height / 2;
+                        }
+                        break;
+                    case 'right':
+                        iconX = x + width * 0.5 + imageOffsetX;
+                        iconY = y + (height - iconSize) / 2 + imageOffsetY;
+                        if (hasText) {
+                            textX = x + width * 0.4;
+                            textY = y + height / 2;
+                        }
+                        break;
+                    case 'center':
+                        iconX = x + (width - iconSize) / 2 + imageOffsetX;
+                        iconY = y + (height - iconSize) / 2 + imageOffsetY;
+                        if (hasText) {
+                            textY = y + height * 0.75;
+                        }
+                        break;
                 }
             }
 
             // Draw image if loaded
             if (hasImage) {
                 ctx.save();
-                ctx.globalAlpha = 0.9;
+                ctx.globalAlpha = currentButton.imageOpacity;
                 ctx.drawImage(loadedImage, iconX, iconY, iconSize, iconSize);
                 ctx.restore();
             }
-
-            // Draw emoji if present
-            if (hasEmoji && !hasImage) {
+            // Draw emoji only if no image is loaded
+            else if (hasEmoji) {
+                ctx.save();
+                ctx.globalAlpha = currentButton.imageOpacity;
                 ctx.font = `${iconSize}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = currentButton.textColor;
                 ctx.fillText(currentButton.emoji, iconX + iconSize / 2, iconY + iconSize / 2);
+                ctx.restore();
             }
 
             // Draw text
@@ -1147,26 +1337,22 @@
 
         // Download image with high quality
         function downloadImage(format) {
-            // Create high-res canvas for export
             const exportCanvas = document.createElement('canvas');
             const exportCtx = exportCanvas.getContext('2d');
             exportCanvas.width = 800;
             exportCanvas.height = 600;
             
-            // Scale and draw to export canvas
-            exportCtx.scale(2, 2);
             const originalCanvas = canvas;
             const originalCtx = ctx;
             canvas = exportCanvas;
             ctx = exportCtx;
             
+            exportCtx.scale(2, 2);
             drawAdvancedButton();
             
-            // Restore original canvas
             canvas = originalCanvas;
             ctx = originalCtx;
             
-            // Download
             const link = document.createElement('a');
             const filename = `roblox-button-${currentButton.text.toLowerCase().replace(/\s+/g, '-')}.${format}`;
             link.download = filename;
@@ -1179,21 +1365,27 @@
         // Generate Roblox code
         function generateRobloxCode() {
             const buttonName = currentButton.text.replace(/\s+/g, '');
+            const imageSize = currentButton.iconSize / 100; // Normalize for Roblox
+            const imageOffsetX = currentButton.imageOffsetX / 100;
+            const imageOffsetY = currentButton.imageOffsetY / 100;
+            
             const robloxCode = `-- ${currentButton.text} Button généré par RobloxAI
 local ${buttonName}Button = Instance.new("TextButton")
 local UICorner = Instance.new("UICorner")
 local UIGradient = Instance.new("UIGradient")
 local UIStroke = Instance.new("UIStroke")
+${currentButton.imageUrl || currentButton.emoji ? `local Icon = Instance.new("ImageLabel")` : ''}
 
 -- Configuration du bouton
 ${buttonName}Button.Name = "${buttonName}Button"
-${buttonName}Button.Size = UDim2.new(0, 200, 0, 60)
-${buttonName}Button.Position = UDim2.new(0.5, -100, 0.5, -30)
+${buttonName}Button.Size = UDim2.new(0, ${currentButton.size === 'small' ? 150 : currentButton.size === 'large' ? 250 : currentButton.size === 'xl' ? 300 : 200}, 0, ${currentButton.size === 'small' ? 45 : currentButton.size === 'large' ? 75 : currentButton.size === 'xl' ? 90 : 60})
+${buttonName}Button.Position = UDim2.new(0.5, ${-(currentButton.size === 'small' ? 75 : currentButton.size === 'large' ? 125 : currentButton.size === 'xl' ? 150 : 100)}, 0.5, ${-(currentButton.size === 'small' ? 22.5 : currentButton.size === 'large' ? 37.5 : currentButton.size === 'xl' ? 45 : 30)})
 ${buttonName}Button.BackgroundColor3 = Color3.fromHex("${currentButton.color1}")
 ${buttonName}Button.Text = "${currentButton.text}"
 ${buttonName}Button.TextColor3 = Color3.fromHex("${currentButton.textColor}")
 ${buttonName}Button.TextSize = ${currentButton.textSize}
 ${buttonName}Button.Font = Enum.Font.SourceSansBold
+${buttonName}Button.BackgroundTransparency = ${currentButton.imageOpacity < 1 ? currentButton.imageOpacity : 0}
 
 -- Coin arrondi
 UICorner.CornerRadius = UDim.new(0, ${currentButton.shape === 'circle' ? 50 : currentButton.shape === 'rounded' ? 12 : 0})
@@ -1204,33 +1396,53 @@ UIGradient.Color = ColorSequence.new{
     ColorSequenceKeypoint.new(0, Color3.fromHex("${currentButton.color1}")),
     ColorSequenceKeypoint.new(1, Color3.fromHex("${currentButton.color2}"))
 }
+UIGradient.Rotation = 45
 UIGradient.Parent = ${buttonName}Button` : ''}
 
-${currentButton.effects.stroke ? `-- Contour
-UIStroke.Thickness = 2
-UIStroke.Color = Color3.fromHex("${currentButton.textColor}")
+${currentButton.borderStyle !== 'none' ? `-- Bordure
+UIStroke.Thickness = ${currentButton.borderWidth}
+UIStroke.Color = Color3.fromHex("${currentButton.borderColor}")
+${currentButton.borderStyle === 'dashed' ? 'UIStroke.LineJoinMode = Enum.LineJoinMode.Miter\nUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border' : ''}
+${currentButton.borderStyle === 'dotted' ? 'UIStroke.LineJoinMode = Enum.LineJoinMode.Round\nUIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border' : ''}
 UIStroke.Parent = ${buttonName}Button` : ''}
+
+${currentButton.imageUrl ? `-- Image
+Icon.Name = "Icon"
+Icon.Parent = ${buttonName}Button
+Icon.Size = UDim2.new(0, ${currentButton.iconSize}, 0, ${currentButton.iconSize})
+Icon.Image = "${currentButton.imageUrl}"
+Icon.BackgroundTransparency = 1
+Icon.Position = UDim2.new(${currentButton.iconPosition === 'left' ? '0.1' : currentButton.iconPosition === 'right' ? '0.5' : '0.5'}, ${imageOffsetX}, ${currentButton.iconPosition === 'top' ? '0.15' : currentButton.iconPosition === 'bottom' ? '0.65' : currentButton.iconPosition === 'center' ? '0.5' : '0.5'}, ${imageOffsetY})
+Icon.ImageTransparency = ${1 - currentButton.imageOpacity}` : currentButton.emoji && !currentButton.imageUrl ? `-- Emoji
+Icon.Name = "Icon"
+Icon.Parent = ${buttonName}Button
+Icon.Size = UDim2.new(0, ${currentButton.iconSize}, 0, ${currentButton.iconSize})
+Icon.Image = "rbxassetid://0" -- Remplacer par l'ID de l'emoji "${currentButton.emoji}"
+Icon.BackgroundTransparency = 1
+Icon.Position = UDim2.new(${currentButton.iconPosition === 'left' ? '0.1' : currentButton.iconPosition === 'right' ? '0.5' : '0.5'}, ${imageOffsetX}, ${currentButton.iconPosition === 'top' ? '0.15' : currentButton.iconPosition === 'bottom' ? '0.65' : currentButton.iconPosition === 'center' ? '0.5' : '0.5'}, ${imageOffsetY})
+Icon.ImageTransparency = ${1 - currentButton.imageOpacity}` : ''}
 
 ${currentButton.effects.glow ? `-- Effet Glow
 ${buttonName}Button.BackgroundTransparency = 0.1
 local SelectionBox = Instance.new("SelectionBox")
 SelectionBox.Color3 = Color3.fromHex("${currentButton.color1}")
-SelectionBox.Transparency = 0.5
-SelectionBox.Adornee = ${buttonName}Button` : ''}
+SelectionBox.Transparency = ${1 - (currentButton.intensity / 100)}
+SelectionBox.Adornee = ${buttonName}Button
+SelectionBox.Parent = ${buttonName}Button` : ''}
+
+${currentButton.effects.hover ? `-- Effet Hover
+${buttonName}Button.MouseEnter:Connect(function()
+    ${buttonName}Button:TweenSize(UDim2.new(0, ${currentButton.size === 'small' ? 165 : currentButton.size === 'large' ? 275 : currentButton.size === 'xl' ? 330 : 220}, 0, ${currentButton.size === 'small' ? 50 : currentButton.size === 'large' ? 83 : currentButton.size === 'xl' ? 99 : 66}), "Out", "Quad", 0.2)
+end)
+
+${buttonName}Button.MouseLeave:Connect(function()
+    ${buttonName}Button:TweenSize(UDim2.new(0, ${currentButton.size === 'small' ? 150 : currentButton.size === 'large' ? 250 : currentButton.size === 'xl' ? 300 : 200}, 0, ${currentButton.size === 'small' ? 45 : currentButton.size === 'large' ? 75 : currentButton.size === 'xl' ? 90 : 60}), "Out", "Quad", 0.2)
+end)` : ''}
 
 -- Événement de clic
 ${buttonName}Button.MouseButton1Click:Connect(function()
     print("${currentButton.text} cliqué!")
     -- Ajoutez votre logique ici
-end)
-
--- Animation hover (optionnel)
-${buttonName}Button.MouseEnter:Connect(function()
-    ${buttonName}Button:TweenSize(UDim2.new(0, 210, 0, 63), "Out", "Quad", 0.2)
-end)
-
-${buttonName}Button.MouseLeave:Connect(function()
-    ${buttonName}Button:TweenSize(UDim2.new(0, 200, 0, 60), "Out", "Quad", 0.2)
 end)`;
 
             document.getElementById('robloxCode').textContent = robloxCode;
