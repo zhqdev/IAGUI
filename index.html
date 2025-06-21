@@ -151,6 +151,14 @@
             transform: translateX(0);
         }
         
+        .toast.error {
+            background: rgba(239, 68, 68, 0.9);
+        }
+        
+        .toast.success {
+            background: rgba(16, 185, 129, 0.9);
+        }
+        
         .loading-spinner {
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-top: 2px solid var(--roblox-blue);
@@ -366,9 +374,9 @@
                                                 oninput="updateButton()"
                                             >
                                             <div class="grid grid-cols-3 gap-2 mt-2">
-                                                <button onclick="setImageUrl('https://cdn-icons-png.flaticon.com/512/3062/3062634.png')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Bouclier</button>
-                                                <button onclick="setImageUrl('https://cdn-icons-png.flaticon.com/512/2811/2811806.png')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Épée</button>
-                                                <button onclick="setImageUrl('https://cdn-icons-png.flaticon.com/512/3004/3004458.png')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Couronne</button>
+                                                <button onclick="setImageUrl('https://picsum.photos/200/200?random=1')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Image 1</button>
+                                                <button onclick="setImageUrl('https://picsum.photos/200/200?random=2')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Image 2</button>
+                                                <button onclick="setImageUrl('https://picsum.photos/200/200?random=3')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Image 3</button>
                                             </div>
                                         </div>
                                     </div>
@@ -413,7 +421,6 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs text-gray-400 mb-1">Taille</label>
-ソーシャルメディア
                                         <select id="buttonSize" class="select-field text-sm" onchange="updateButton()">
                                             <option value="small">Petit</option>
                                             <option value="normal">Normal</option>
@@ -918,46 +925,61 @@
             document.getElementById('borderWidth').value = currentButton.borderWidth;
             document.getElementById('borderColor').value = currentButton.borderColor;
             document.getElementById('imageUrl').value = "";
+            document.getElementById('imageFile').value = ""; // Clear file input
             
             updateButton();
         }
 
         // Set emoji
         function setEmoji(emoji) {
-            if (!currentButton.imageUrl) { // Only set emoji if no image is loaded
-                currentButton.emoji = emoji;
-                updateButton();
-            }
+            currentButton.emoji = emoji;
+            currentButton.imageUrl = ""; // Clear image URL
+            document.getElementById('imageUrl').value = "";
+            document.getElementById('imageFile').value = "";
+            loadedImage = null;
+            updateButton();
         }
 
         // Handle image file upload
         function handleImageUpload() {
             const fileInput = document.getElementById('imageFile');
             const file = fileInput.files[0];
-            
+
             if (file) {
                 // Check file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
                     showToast('Image trop volumineuse. Maximum 5MB.', 'error');
+                    fileInput.value = ''; // Clear input
                     return;
                 }
-                
+
                 // Check file type
                 if (!file.type.startsWith('image/')) {
                     showToast('Veuillez sélectionner une image valide.', 'error');
+                    fileInput.value = ''; // Clear input
                     return;
                 }
-                
+
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    currentButton.imageUrl = e.target.result;
-                    currentButton.emoji = ""; // Clear emoji when image is loaded
-                    document.getElementById('imageUrl').value = 'Image locale chargée';
-                    updateButton();
-                    showToast('Image chargée avec succès!', 'success');
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        loadedImage = img;
+                        currentButton.imageUrl = e.target.result;
+                        currentButton.emoji = ""; // Clear emoji
+                        document.getElementById('imageUrl').value = 'Image locale chargée';
+                        updateButton();
+                        showToast('Image chargée avec succès!', 'success');
+                    };
+                    img.onerror = function() {
+                        showToast('Erreur lors du chargement de l\'image locale.', 'error');
+                        fileInput.value = '';
+                    };
                 };
                 reader.onerror = function() {
-                    showToast('Erreur lors du chargement de l\'image.', 'error');
+                    showToast('Erreur lors de la lecture du fichier.', 'error');
+                    fileInput.value = '';
                 };
                 reader.readAsDataURL(file);
             }
@@ -966,9 +988,26 @@
         // Set image URL from preset
         function setImageUrl(url) {
             currentButton.imageUrl = url;
-            currentButton.emoji = ""; // Clear emoji when image URL is set
+            currentButton.emoji = ""; // Clear emoji
             document.getElementById('imageUrl').value = url;
-            updateButton();
+            document.getElementById('imageFile').value = ""; // Clear file input
+
+            // Load the image to ensure it is accessible
+            const img = new Image();
+            img.crossOrigin = 'anonymous'; // Enable CORS
+            img.src = url;
+            img.onload = function() {
+                loadedImage = img;
+                updateButton();
+                showToast('Image chargée avec succès depuis l\'URL!', 'success');
+            };
+            img.onerror = function() {
+                loadedImage = null;
+                currentButton.imageUrl = "";
+                document.getElementById('imageUrl').value = "";
+                updateButton();
+                showToast('Impossible de charger l\'image depuis cette URL. Vérifiez l\'URL ou les restrictions CORS.', 'error');
+            };
         }
 
         // Apply gradient
@@ -988,7 +1027,6 @@
 
             // Get all values from form
             currentButton.text = document.getElementById('customText').value;
-            currentButton.imageUrl = document.getElementById('imageUrl').value;
             currentButton.shape = document.getElementById('buttonShape').value;
             currentButton.size = document.getElementById('buttonSize').value;
             currentButton.backgroundType = document.getElementById('backgroundType').value;
@@ -1011,41 +1049,8 @@
             currentButton.effects.hover = document.getElementById('hoverEffect').checked;
             currentButton.intensity = document.getElementById('effectIntensity').value;
 
-            // Load image if URL provided
-            if (currentButton.imageUrl && currentButton.imageUrl !== '' && currentButton.imageUrl !== 'Image locale chargée') {
-                if (currentButton.imageUrl.startsWith('data:image/')) {
-                    const img = new Image();
-                    img.onload = function() {
-                        loadedImage = img;
-                        drawAdvancedButton();
-                    };
-                    img.onerror = function() {
-                        loadedImage = null;
-                        currentButton.imageUrl = "";
-                        drawAdvancedButton();
-                        showToast('Erreur lors du chargement de l\'image.', 'error');
-                    };
-                    img.src = currentButton.imageUrl;
-                } else {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.onload = function() {
-                        loadedImage = img;
-                        drawAdvancedButton();
-                        showToast('Image externe chargée!', 'success');
-                    };
-                    img.onerror = function() {
-                        loadedImage = null;
-                        currentButton.imageUrl = "";
-                        drawAdvancedButton();
-                        showToast('Impossible de charger l\'image depuis cette URL.', 'error');
-                    };
-                    img.src = currentButton.imageUrl;
-                }
-            } else {
-                loadedImage = null;
-                drawAdvancedButton();
-            }
+            // Draw button
+            drawAdvancedButton();
 
             // Handle animation
             if (currentButton.effects.animated) {
@@ -1244,7 +1249,7 @@
             }
 
             // Draw image if loaded
-            if (hasImage) {
+            if (hasImage && loadedImage) {
                 ctx.save();
                 ctx.globalAlpha = currentButton.imageOpacity;
                 ctx.drawImage(loadedImage, iconX, iconY, iconSize, iconSize);
