@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RobloxAI - Générateur de GUI Intelligent</title>
+    <meta name="description" content="Créez des interfaces Roblox professionnelles avec l'aide de l'intelligence artificielle. Générez du code Lua et des éléments visuels pour vos GUIs.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --roblox-blue: #00A2FF;
+            --roblox-darkblue: #0080CC;
+            --roblox-dark: #0D1117;
+            --roblox-darker: #010409;
+            --roblox-gray: #21262D;
+            --roblox-light: #F6F8FA;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--roblox-darker) 0%, var(--roblox-dark) 50%, var(--roblox-gray) 100%);
+            color: #F6F8FA;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .glow-border {
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            box-shadow: 0 0 20px rgba(0, 162, 255, 0.1);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .animate-glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(0, 162, 255, 0.3); }
+            to { box-shadow: 0 0 30px rgba(0, 162, 255, 0.6), 0 0 40px rgba(0, 162, 255, 0.3); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--roblox-blue) 0%, #8B5CF6 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 162, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .card {
+            background: linear-gradient(135deg, rgba(33, 38, 45, 0.8) 0%, rgba(13, 17, 23, 0.6) 100%);
+            border: 1px solid rgba(0, 162, 255, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .input-field {
+            background: rgba(33, 38, 45, 0.8);
+            border: 1px solid rgba(107, 114, 126, 0.5);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            width: 100%;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: var(--roblox-blue);
+            box-shadow: 0 0 0 3px rgba(0, 162, 255, 0.1);
+        }
+        
+        .select-field {
+            background: rgba(33, 38, 45, 0.8);
+            border: 1px solid rgba(107, 114, 126, 0.5);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        }
+        
+        .code-display {
+            background: linear-gradient(135deg, var(--roblox-darker) 0%, var(--roblox-gray) 100%);
+            border: 1px solid rgba(0, 162, 255, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #E6EDF3;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 162, 255, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .loading-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid var(--roblox-blue);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="min-h-screen">
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="border-b border-gray-700 bg-black/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center animate-glow">
+                        <i data-lucide="box" class="text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-blue-400">RobloxAI</h1>
+                        <p class="text-sm text-gray-400">Générateur de GUI Intelligent</p>
+                    </div>
+                </div>
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#generator" class="text-gray-300 hover:text-blue-400 transition-colors">Créateur</a>
+                    <a href="#templates" class="text-gray-300 hover:text-blue-400 transition-colors">Templates</a>
+                    <button class="btn-primary" onclick="scrollToSection('generator')">Commencer</button>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-20 px-6">
+        <div class="container mx-auto text-center">
+            <div class="animate-float mb-8">
+                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mx-auto flex items-center justify-center mb-6 animate-glow">
+                    <i data-lucide="wand-sparkles" class="text-white text-3xl"></i>
+                </div>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Créez des GUIs Roblox
+                <span class="block">avec l'IA</span>
+            </h1>
+            <p class="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Créez des boutons et éléments visuels personnalisés pour vos interfaces Roblox avec des gradients, effets etanimations avancés.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button 
+                    class="btn-primary px-8 py-4 text-lg font-semibold animate-glow"
+                    onclick="scrollToSection('generator')"
+                >
+                    <i data-lucide="rocket" class="inline mr-2"></i>
+                    Commencer Maintenant
+                </button>
+                <button class="btn-secondary px-8 py-4 text-lg font-semibold">
+                    <i data-lucide="play-circle" class="inline mr-2"></i>
+                    Voir la Démo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Features Grid -->
+    <section class="py-16 px-6" id="generator">
+        <div class="container mx-auto">
+            <div class="max-w-4xl mx-auto">
+                <!-- Advanced Image Creator -->
+                <div class="card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-3xl font-bold text-blue-400 flex items-center">
+                            <i data-lucide="image" class="mr-3"></i>
+                            Créateur d'Images Avancé
+                        </h2>
+                        <span class="bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full text-sm">Canvas Pro</span>
+                    </div>
+                    
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <!-- Left Panel - Controls -->
+                        <div class="space-y-6">
+                            <!-- Preset Buttons -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-white mb-3">Templates de Base</h3>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <button onclick="createPresetButton('play')" class="btn-secondary py-3 hover:bg-blue-500/20">
+                                        <span class="mr-2">▶️</span>PLAY
+                                    </button>
+                                    <button onclick="createPresetButton('shop')" class="btn-secondary py-3 hover:bg-purple-500/20">
+                                        <span class="mr-2">🛒</span>SHOP
+                                    </button>
+                                    <button onclick="createPresetButton('settings')" class="btn-secondary py-3 hover:bg-green-500/20">
+                                        <span class="mr-2">⚙️</span>CONFIG
+                                    </button>
+                                    <button onclick="createPresetButton('profile')" class="btn-secondary py-3 hover:bg-yellow-500/20">
+                                        <span class="mr-2">👤</span>PROFIL
+                                    </button>
+                                    <button onclick="createPresetButton('premium')" class="btn-secondary py-3 hover:bg-gold-500/20">
+                                        <span class="mr-2">⭐</span>PREMIUM
+                                    </button>
+                                    <button onclick="createPresetButton('exit')" class="btn-secondary py-3 hover:bg-red-500/20">
+                                        <span class="mr-2">🚪</span>SORTIR
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Text and Icon Customization -->
+                            <div class="bg-gray-800/30 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold text-white mb-3">Contenu</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Texte</label>
+                                        <input 
+                                            type="text" 
+                                            id="customText" 
+                                            class="input-field" 
+                                            value="VOTRE TEXTE"
+                                            oninput="updateButton()"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Taille du texte</label>
+                                        <input 
+                                            type="range" 
+                                            id="textSize" 
+                                            min="10" 
+                                            max="50" 
+                                            value="22" 
+                                            class="w-full" 
+                                            oninput="updateButton()"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Position de l'image/emoji</label>
+                                        <select id="iconPosition" class="select-field text-sm" onchange="updateButton()">
+                                            <option value="top">En haut</option>
+                                            <option value="left">À gauche</option>
+                                            <option value="right">À droite</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Image/Icône</label>
+                                        <div class="space-y-2">
+                                            <input 
+                                                type="file" 
+                                                id="imageFile" 
+                                                accept="image/*"
+                                                class="input-field"
+                                                onchange="handleImageUpload()"
+                                                style="padding: 8px;"
+                                            >
+                                            <div class="text-center text-gray-400 text-sm">ou</div>
+                                            <input 
+                                                type="text" 
+                                                id="imageUrl" 
+                                                class="input-field" 
+                                                placeholder="https://example.com/icon.png"
+                                                oninput="updateButton()"
+                                            >
+                                            <div class="grid grid-cols-3 gap-2 mt-2">
+                                                <button onclick="setImageUrl('https://cdn-icons-png.flaticon.com/512/3062/3062634.png')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Bouclier</button>
+                                                <button onclick="setImageUrl('https://cdn-icons-png.flaticon.com/512/2811/2811806.png')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Épée</button>
+                                                <button onclick="setImageUrl('https://cdn-icons-png.flaticon.com/512/3004/3004458.png')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xs text-gray-300">Couronne</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Taille de l'image/emoji</label>
+                                        <input 
+                                            type="range" 
+                                            id="iconSize" 
+                                            min="10" 
+                                            max="80" 
+                                            value="35" 
+                                            class="w-full" 
+                                            oninput="updateButton()"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="block text-gray-300 mb-2">Emoji/Icône</label>
+                                        <div class="grid grid-cols-6 gap-2">
+                                            <button onclick="setEmoji('⚡')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xl">⚡</button>
+                                            <button onclick="setEmoji('🔥')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xl">🔥</button>
+                                            <button onclick="setEmoji('💎')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xl">💎</button>
+                                            <button onclick="setEmoji('🎯')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xl">🎯</button>
+                                            <button onclick="setEmoji('🏆')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xl">🏆</button>
+                                            <button onclick="setEmoji('🎮')" class="bg-gray-700 hover:bg-gray-600 p-2 rounded text-xl">🎮</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Style Options -->
+                            <div class="bg-gray-800/30 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold text-white mb-3">Style</h3>
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Forme</label>
+                                        <select id="buttonShape" class="select-field text-sm" onchange="updateButton()">
+                                            <option value="rounded">Arrondi</option>
+                                            <option value="rectangle">Rectangle</option>
+                                            <option value="circle">Cercle</option>
+                                            <option value="hexagon">Hexagone</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Taille</label>
+                                        <select id="buttonSize" class="select-field text-sm" onchange="updateButton()">
+                                            <option value="small">Petit</option>
+                                            <option value="normal">Normal</option>
+                                            <option value="large">Large</option>
+                                            <option value="xl">Extra Large</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Colors and Gradients -->
+                            <div class="bg-gray-800/30 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold text-white mb-3">Couleurs & Gradients</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Type de fond</label>
+                                        <select id="backgroundType" class="select-field text-sm" onchange="updateButton()">
+                                            <option value="solid">Couleur unie</option>
+                                            <option value="gradient">Gradient</option>
+                                            <option value="glow">Glow</option>
+                                            <option value="rainbow">Arc-en-ciel</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs text-gray-400 mb-1">Couleur 1</label>
+                                            <input type="color" id="color1" class="w-full h-8 border border-gray-600 rounded" value="#00A2FF" onchange="updateButton()">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-gray-400 mb-1">Couleur 2</label>
+                                            <input type="color" id="color2" class="w-full h-8 border border-gray-600 rounded" value="#8B5CF6" onchange="updateButton()">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Couleur du texte</label>
+                                        <input type="color" id="textColor" class="w-full h-8 border border-gray-600 rounded" value="#FFFFFF" onchange="updateButton()">
+                                    </div>
+                                </div>
+                                
+                                <!-- Gradient Presets -->
+                                <div class="mt-4">
+                                    <label class="block text-xs text-gray-400 mb-2">Gradients Prédéfinis</label>
+                                    <div class="grid grid-cols-4 gap-2">
+                                        <button onclick="applyGradient(['#FF6B6B', '#4ECDC4'])" class="h-8 rounded" style="background: linear-gradient(45deg, #FF6B6B, #4ECDC4)"></button>
+                                        <button onclick="applyGradient(['#667eea', '#764ba2'])" class="h-8 rounded" style="background: linear-gradient(45deg, #667eea, #764ba2)"></button>
+                                        <button onclick="applyGradient(['#f093fb', '#f5576c'])" class="h-8 rounded" style="background: linear-gradient(45deg, #f093fb, #f5576c)"></button>
+                                        <button onclick="applyGradient(['#4facfe', '#00f2fe'])" class="h-8 rounded" style="background: linear-gradient(45deg, #4facfe, #00f2fe)"></button>
+                                        <button onclick="applyGradient(['#43e97b', '#38f9d7'])" class="h-8 rounded" style="background: linear-gradient(45deg, #43e97b, #38f9d7)"></button>
+                                        <button onclick="applyGradient(['#fa709a', '#fee140'])" class="h-8 rounded" style="background: linear-gradient(45deg, #fa709a, #fee140)"></button>
+                                        <button onclick="applyGradient(['#a8edea', '#fed6e3'])" class="h-8 rounded" style="background: linear-gradient(45deg, #a8edea, #fed6e3)"></button>
+                                        <button onclick="applyGradient(['#ff9a9e', '#fecfef'])" class="h-8 rounded" style="background: linear-gradient(45deg, #ff9a9e, #fecfef)"></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Effects -->
+                            <div class="bg-gray-800/30 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold text-white mb-3">Effets</h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="glowEffect" class="mr-2" onchange="updateButton()">
+                                            <span class="text-gray-300">Effet Glow</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="shadowEffect" class="mr-2" onchange="updateButton()">
+                                            <span class="text-gray-300">Ombre portée</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="strokeEffect" class="mr-2" onchange="updateButton()">
+                                            <span class="text-gray-300">Contour (Stroke)</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="animatedEffect" class="mr-2" onchange="updateButton()">
+                                            <span class="text-gray-300">Animation</span>
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs text-gray-400 mb-1">Intensité de l'effet</label>
+                                        <input type="range" id="effectIntensity" min="0" max="100" value="50" class="w-full" onchange="updateButton()">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel - Preview and Export -->
+                        <div class="space-y-6">
+                            <!-- Canvas Preview -->
+                            <div class="bg-gray-900 rounded-lg p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-lg font-semibold text-white">Aperçu en Temps Réel</h3>
+                                    <div class="flex space-x-2">
+                                        <button onclick="refreshCanvas()" class="btn-secondary p-2" title="Actualiser">
+                                            <i data-lucide="rotate-ccw" class="inline"></i>
+                                        </button>
+                                        <button onclick="clearCanvas()" class="btn-secondary p-2" title="Effacer">
+                                            <i data-lucide="trash-2" class="inline"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <canvas 
+                                    id="buttonCanvas" 
+                                    width="400" 
+                                    height="300" 
+                                    class="w-full border border-gray-600 rounded bg-gray-800"
+                                ></canvas>
+                            </div>
+
+                            <!-- Export Options -->
+                            <div class="bg-gray-800/30 rounded-lg p-4">
+                                <h3 class="text-lg font-semibold text-white mb-3">Export & Téléchargement</h3>
+                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                    <button onclick="downloadImage('png')" class="bg-green-600 hover:bg-green-700 py-3 font-medium transition-colors rounded-lg text-white">
+                                        <i data-lucide="download" class="inline mr-2"></i>
+                                        PNG HD
+                                    </button>
+                                    <button onclick="downloadImage('jpeg')" class="bg-purple-600 hover:bg-purple-700 py-3 font-medium transition-colors rounded-lg text-white">
+                                        <i data-lucide="download" class="inline mr-2"></i>
+                                        JPG
+                                    </button>
+                                </div>
+                                <div class="grid grid-cols-1 gap-3">
+                                    <button onclick="generateRobloxCode()" class="bg-blue-600 hover:bg-blue-700 py-3 font-medium transition-colors rounded-lg text-white">
+                                        <i data-lucide="code" class="inline mr-2"></i>
+                                        Générer Code Roblox
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Generated Code Display -->
+                            <div id="robloxCodeOutput" class="bg-gray-800/30 rounded-lg p-4 hidden">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="text-lg font-semibold text-white">Code Roblox Généré</h3>
+                                    <button onclick="copyRobloxCode()" class="btn-secondary">
+                                        <i data-lucide="copy" class="inline mr-1"></i>
+                                        Copier
+                                    </button>
+                                </div>
+                                <div id="robloxCode" class="code-display text-sm max-h-60 overflow-y-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Templates Section -->
+    <section class="py-16 px-6 bg-black/30" id="templates">
+        <div class="container mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-blue-400 mb-4">Templates Prêts à Utiliser</h2>
+                <p class="text-gray-300 text-lg">Choisissez parmi nos modèles prédéfinis pour commencer rapidement</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Template 1: Gaming Menu -->
+                <div class="card hover:scale-105 transition-all cursor-pointer">
+                    <div class="h-48 bg-gradient-to-br from-red-500 to-orange-500 relative flex items-center justify-center rounded-lg mb-4">
+                        <div class="text-center">
+                            <div class="bg-white/20 backdrop-blur px-6 py-3 rounded-lg mb-2">
+                                <i data-lucide="gamepad-2" class="text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-white font-bold uppercase tracking-wide">GAMING</h3>
+                        </div>
+                        <span class="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded text-xs">Populaire</span>
+                    </div>
+                    <h3 class="font-semibold text-white mb-2">Menu Gaming Moderne</h3>
+                    <p class="text-gray-400 text-sm mb-3">Interface complète avec boutons animés et effets visuels</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-blue-400 text-sm">4 composants</span>
+                        <button onclick="useTemplate('gaming')" class="btn-primary">Utiliser</button>
+                    </div>
+                </div>
+
+                <!-- Template 2: Shop Interface -->
+                <div class="card hover:scale-105 transition-all cursor-pointer">
+                    <div class="h-48 bg-gradient-to-br from-purple-500 to-pink-500 relative flex items-center justify-center rounded-lg mb-4">
+                        <div class="text-center">
+                            <div class="bg-white/20 backdrop-blur px-6 py-3 rounded-lg mb-2">
+                                <i data-lucide="shopping-bag" class="text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-white font-bold uppercase tracking-wide">SHOP</h3>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-white mb-2">Interface Boutique</h3>
+                    <p class="text-gray-400 text-sm mb-3">Système complet de boutique avec grille d'objets</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-blue-400 text-sm">3 composants</span>
+                        <button onclick="useTemplate('shop')" class="btn-primary">Utiliser</button>
+                    </div>
+                </div>
+
+                <!-- Template 3: Settings Panel -->
+                <div class="card hover:scale-105 transition-all cursor-pointer">
+                    <div class="h-48 bg-gradient-to-br from-blue-500 to-cyan-500 relative flex items-center justify-center rounded-lg mb-4">
+                        <div class="text-center">
+                            <div class="bg-white/20 backdrop-blur px-6 py-3 rounded-lg mb-2">
+                                <i data-lucide="settings" class="text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-white font-bold uppercase tracking-wide">SETTINGS</h3>
+                        </div>
+                    </div>
+                    <h3 class="font-semibold text-white mb-2">Panneau de Paramètres</h3>
+                    <p class="text-gray-400 text-sm mb-3">Interface de configuration avec sliders et toggles</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-blue-400 text-sm">5 composants</span>
+                        <button onclick="useTemplate('settings')" class="btn-primary">Utiliser</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-700 bg-black/50 py-12 px-6">
+        <div class="container mx-auto">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <i data-lucide="box" class="text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold text-blue-400">RobloxAI</span>
+                    </div>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        Créez des interfaces Roblox professionnelles avec l'aide de l'intelligence artificielle.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Outils</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#generator" class="hover:text-blue-400 transition-colors">Générateur de Code</a></li>
+                        <li><a href="#editor" class="hover:text-blue-400 transition-colors">Créateur d'Images</a></li>
+                        <li><a href="#templates" class="hover:text-blue-400 transition-colors">Templates</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Ressources</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Documentation</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Tutoriels</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Exemples</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Centre d'aide</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Discord</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">© 2024 RobloxAI. Tous droits réservés.</p>
+                <div class="flex space-x-6 mt-4 md:mt-0 text-gray-400">
+                    <a href="#" class="hover:text-blue-400 transition-colors">Discord</a>
+                    <a href="#" class="hover:text-blue-400 transition-colors">GitHub</a>
+                    <a href="#" class="hover:text-blue-400 transition-colors">Twitter</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Global variables
+        let currentButton = {
+            text: "VOTRE TEXTE",
+            emoji: "",
+            imageUrl: "",
+            backgroundColor: "#00A2FF",
+            textColor: "#FFFFFF",
+            glowColor: "rgba(0, 162, 255, 0.5)",
+            shape: "rounded",
+            size: "normal",
+            backgroundType: "solid",
+            color1: "#00A2FF",
+            color2: "#8B5CF6",
+            iconPosition: "top",
+            textSize: 22, // New property for text size
+            iconSize: 35, // New property for icon/emoji size
+            effects: {
+                glow: false,
+                shadow: false,
+                stroke: false,
+                animated: false
+            },
+            intensity: 50
+        };
+        let canvas = null;
+        let ctx = null;
+        let loadedImage = null;
+        let animationFrame = null;
+
+        // Initialize canvas
+        function initCanvas() {
+            canvas = document.getElementById('buttonCanvas');
+            ctx = canvas.getContext('2d');
+            createPresetButton('play');
+        }
+
+        // Toast notification
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = `toast show ${type}`;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Scroll to section
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Advanced Canvas button creation
+        function createPresetButton(type) {
+            const presets = {
+                play: {
+                    text: "PLAY",
+                    emoji: "▶️",
+                    backgroundColor: "#00A2FF",
+                    textColor: "#FFFFFF",
+                    color1: "#00A2FF",
+                    color2: "#0080CC",
+                    iconPosition: "left",
+                    textSize: 22,
+                    iconSize: 35
+                },
+                shop: {
+                    text: "SHOP",
+                    emoji: "🛒",
+                    backgroundColor: "#8B5CF6",
+                    textColor: "#FFFFFF",
+                    color1: "#8B5CF6",
+                    color2: "#7C3AED",
+                    iconPosition: "left",
+                    textSize: 22,
+                    iconSize: 35
+                },
+                settings: {
+                    text: "SETTINGS",
+                    emoji: "⚙️",
+                    backgroundColor: "#10B981",
+                    textColor: "#FFFFFF",
+                    color1: "#10B981",
+                    color2: "#059669",
+                    iconPosition: "left",
+                    textSize: 22,
+                    iconSize: 35
+                },
+                profile: {
+                    text: "PROFILE",
+                    emoji: "👤",
+                    backgroundColor: "#F59E0B",
+                    textColor: "#FFFFFF",
+                    color1: "#F59E0B",
+                    color2: "#D97706",
+                    iconPosition: "left",
+                    textSize: 22,
+                    iconSize: 35
+                },
+                premium: {
+                    text: "PREMIUM",
+                    emoji: "⭐",
+                    backgroundColor: "#FFD700",
+                    textColor: "#000000",
+                    color1: "#FFD700",
+                    color2: "#FFA500",
+                    iconPosition: "left",
+                    textSize: 22,
+                    iconSize: 35
+                },
+                exit: {
+                    text: "SORTIR",
+                    emoji: "🚪",
+                    backgroundColor: "#EF4444",
+                    textColor: "#FFFFFF",
+                    color1: "#EF4444",
+                    color2: "#DC2626",
+                    iconPosition: "left",
+                    textSize: 22,
+                    iconSize: 35
+                }
+            };
+
+            const preset = presets[type] || presets.play;
+            currentButton = { ...currentButton, ...preset };
+            
+            document.getElementById('customText').value = currentButton.text;
+            document.getElementById('color1').value = currentButton.color1;
+            document.getElementById('color2').value = currentButton.color2;
+            document.getElementById('textColor').value = currentButton.textColor;
+            document.getElementById('iconPosition').value = currentButton.iconPosition;
+            document.getElementById('textSize').value = currentButton.textSize;
+            document.getElementById('iconSize').value = currentButton.iconSize;
+            
+            updateButton();
+        }
+
+        // Set emoji
+        function setEmoji(emoji) {
+            currentButton.emoji = emoji;
+            updateButton();
+        }
+
+        // Handle image file upload
+        function handleImageUpload() {
+            const fileInput = document.getElementById('imageFile');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Image trop volumineuse. Maximum 5MB.', 'error');
+                    return;
+                }
+                
+                // Check file type
+                if (!file.type.startsWith('image/')) {
+                    showToast('Veuillez sélectionner une image valide.', 'error');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentButton.imageUrl = e.target.result;
+                    document.getElementById('imageUrl').value = 'Image locale chargée';
+                    updateButton();
+                    showToast('Image chargée avec succès!', 'success');
+                };
+                reader.onerror = function() {
+                    showToast('Erreur lors du chargement de l\'image.', 'error');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Set image URL from preset
+        function setImageUrl(url) {
+            document.getElementById('imageUrl').value = url;
+            currentButton.imageUrl = url;
+            updateButton();
+        }
+
+        // Apply gradient
+        function applyGradient(colors) {
+            document.getElementById('color1').value = colors[0];
+            document.getElementById('color2').value = colors[1];
+            document.getElementById('backgroundType').value = 'gradient';
+            currentButton.color1 = colors[0];
+            currentButton.color2 = colors[1];
+            currentButton.backgroundType = 'gradient';
+            updateButton();
+        }
+
+        // Update button with all current settings
+        function updateButton() {
+            if (!canvas || !ctx) return;
+
+            // Get all values from form
+            currentButton.text = document.getElementById('customText').value;
+            currentButton.imageUrl = document.getElementById('imageUrl').value;
+            currentButton.shape = document.getElementById('buttonShape').value;
+            currentButton.size = document.getElementById('buttonSize').value;
+            currentButton.backgroundType = document.getElementById('backgroundType').value;
+            currentButton.color1 = document.getElementById('color1').value;
+            currentButton.color2 = document.getElementById('color2').value;
+            currentButton.textColor = document.getElementById('textColor').value;
+            currentButton.iconPosition = document.getElementById('iconPosition').value;
+            currentButton.textSize = parseInt(document.getElementById('textSize').value);
+            currentButton.iconSize = parseInt(document.getElementById('iconSize').value);
+            currentButton.effects.glow = document.getElementById('glowEffect').checked;
+            currentButton.effects.shadow = document.getElementById('shadowEffect').checked;
+            currentButton.effects.stroke = document.getElementById('strokeEffect').checked;
+            currentButton.effects.animated = document.getElementById('animatedEffect').checked;
+            currentButton.intensity = document.getElementById('effectIntensity').value;
+
+            // Load image if URL provided
+            if (currentButton.imageUrl && currentButton.imageUrl !== '' && currentButton.imageUrl !== 'Image locale chargée') {
+                if (currentButton.imageUrl.startsWith('data:image/')) {
+                    // Base64 image from file upload
+                    const img = new Image();
+                    img.onload = function() {
+                        loadedImage = img;
+                        drawAdvancedButton();
+                    };
+                    img.onerror = function() {
+                        loadedImage = null;
+                        drawAdvancedButton();
+                        showToast('Erreur lors du chargement de l\'image.', 'error');
+                    };
+                    img.src = currentButton.imageUrl;
+                } else {
+                    // External URL
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function() {
+                        loadedImage = img;
+                        drawAdvancedButton();
+                        showToast('Image externe chargée!', 'success');
+                    };
+                    img.onerror = function() {
+                        loadedImage = null;
+                        drawAdvancedButton();
+                        showToast('Impossible de charger l\'image depuis cette URL.', 'error');
+                    };
+                    img.src = currentButton.imageUrl;
+                }
+            } else {
+                loadedImage = null;
+                drawAdvancedButton();
+            }
+
+            // Handle animation
+            if (currentButton.effects.animated) {
+                startAnimation();
+            } else {
+                stopAnimation();
+                drawAdvancedButton();
+            }
+        }
+
+        // Advanced button drawing with all effects
+        function drawAdvancedButton(animationTime = 0) {
+            if (!ctx) return;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Calculate size based on setting
+            let baseWidth = 200, baseHeight = 60;
+            switch(currentButton.size) {
+                case 'small': baseWidth = 150; baseHeight = 45; break;
+                case 'large': baseWidth = 250; baseHeight = 75; break;
+                case 'xl': baseWidth = 300; baseHeight = 90; break;
+            }
+
+            const x = (canvas.width - baseWidth) / 2;
+            const y = (canvas.height - baseHeight) / 2;
+            const width = baseWidth;
+            const height = baseHeight;
+
+            ctx.save();
+
+            // Animation transform
+            if (currentButton.effects.animated) {
+                const pulse = 1 + Math.sin(animationTime * 0.005) * 0.1;
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(pulse, pulse);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+            }
+
+            // Glow effect
+            if (currentButton.effects.glow) {
+                const intensity = currentButton.intensity / 100;
+                ctx.shadowColor = currentButton.color1;
+                ctx.shadowBlur = 20 * intensity;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            // Shadow effect
+            if (currentButton.effects.shadow && !currentButton.effects.glow) {
+                const intensity = currentButton.intensity / 100;
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 10 * intensity;
+                ctx.shadowOffsetX = 5 * intensity;
+                ctx.shadowOffsetY = 5 * intensity;
+            }
+
+            // Draw background based on type
+            switch(currentButton.backgroundType) {
+                case 'gradient':
+                    const gradient = ctx.createLinearGradient(x, y, x + width, y + height);
+                    gradient.addColorStop(0, currentButton.color1);
+                    gradient.addColorStop(1, currentButton.color2);
+                    ctx.fillStyle = gradient;
+                    break;
+                case 'rainbow':
+                    const rainbowGradient = ctx.createLinearGradient(x, y, x + width, y);
+                    rainbowGradient.addColorStop(0, '#ff0000');
+                    rainbowGradient.addColorStop(0.17, '#ff8800');
+                    rainbowGradient.addColorStop(0.33, '#ffff00');
+                    rainbowGradient.addColorStop(0.5, '#00ff00');
+                    rainbowGradient.addColorStop(0.67, '#0088ff');
+                    rainbowGradient.addColorStop(0.83, '#0000ff');
+                    rainbowGradient.addColorStop(1, '#8800ff');
+                    ctx.fillStyle = rainbowGradient;
+                    break;
+                default:
+                    ctx.fillStyle = currentButton.color1;
+            }
+
+            // Draw shape
+            switch(currentButton.shape) {
+                case 'circle':
+                    ctx.beginPath();
+                    ctx.arc(x + width/2, y + height/2, Math.min(width, height)/2, 0, 2 * Math.PI);
+                    break;
+                case 'hexagon':
+                    drawHexagon(x + width/2, y + height/2, Math.min(width, height)/2);
+                    break;
+                case 'rectangle':
+                    ctx.fillRect(x, y, width, height);
+                    break;
+                default: // rounded
+                    drawRoundedRect(x, y, width, height, 12);
+            }
+
+            if (currentButton.shape !== 'rectangle') {
+                ctx.fill();
+            }
+
+            // Stroke effect
+            if (currentButton.effects.stroke) {
+                ctx.strokeStyle = currentButton.textColor;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+
+            // Reset shadow for content
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Calculate content layout based on what we have
+            const hasImage = loadedImage !== null;
+            const hasEmoji = currentButton.emoji && currentButton.emoji !== '';
+            const hasText = currentButton.text && currentButton.text !== '';
+            const iconPosition = currentButton.iconPosition;
+            const textSize = currentButton.textSize;
+            const iconSize = currentButton.iconSize;
+
+            let textX = x + width / 2;
+            let textY = y + height / 2;
+            let iconX, iconY;
+
+            if (hasImage || hasEmoji) {
+                const contentSpacing = height * 0.05;
+
+                if (iconPosition === 'top') {
+                    // Icon on top, text below
+                    iconY = y + height * 0.15;
+                    if (hasText) {
+                        textY = iconY + iconSize + contentSpacing;
+                    }
+                    iconX = x + (width - iconSize) / 2;
+                } else if (iconPosition === 'left') {
+                    // Icon on left, text on right
+                    iconX = x + width * 0.1;
+                    iconY = y + (height - iconSize) / 2;
+                    if (hasText) {
+                        textX = x + width * 0.6;
+                        textY = y + height / 2;
+                    }
+                } else if (iconPosition === 'right') {
+                    // Icon on right, text on left
+                    iconX = x + width * 0.5;
+                    iconY = y + (height - iconSize) / 2;
+                    if (hasText) {
+                        textX = x + width * 0.4;
+                        textY = y + height / 2;
+                    }
+                }
+            }
+
+            // Draw image if loaded
+            if (hasImage) {
+                ctx.save();
+                ctx.globalAlpha = 0.9;
+                ctx.drawImage(loadedImage, iconX, iconY, iconSize, iconSize);
+                ctx.restore();
+            }
+
+            // Draw emoji if present
+            if (hasEmoji && !hasImage) {
+                ctx.font = `${iconSize}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = currentButton.textColor;
+                ctx.fillText(currentButton.emoji, iconX + iconSize / 2, iconY + iconSize / 2);
+            }
+
+            // Draw text
+            if (hasText) {
+                ctx.fillStyle = currentButton.textColor;
+                ctx.font = `bold ${textSize}px Inter, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(currentButton.text, textX, textY);
+            }
+
+            ctx.restore();
+        }
+
+        // Draw hexagon
+        function drawHexagon(centerX, centerY, radius) {
+            ctx.beginPath();
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI) / 3;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+        }
+
+        // Draw rounded rectangle
+        function drawRoundedRect(x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        // Animation functions
+        function startAnimation() {
+            if (animationFrame) return;
+            
+            function animate(timestamp) {
+                drawAdvancedButton(timestamp);
+                animationFrame = requestAnimationFrame(animate);
+            }
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        function stopAnimation() {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
+        }
+
+        // Clear canvas
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            showToast('Canvas effacé!', 'info');
+        }
+
+        // Refresh canvas
+        function refreshCanvas() {
+            updateButton();
+            showToast('Canvas actualisé!', 'info');
+        }
+
+        // Download image with high quality
+        function downloadImage(format) {
+            // Create high-res canvas for export
+            const exportCanvas = document.createElement('canvas');
+            const exportCtx = exportCanvas.getContext('2d');
+            exportCanvas.width = 800;
+            exportCanvas.height = 600;
+            
+            // Scale and draw to export canvas
+            exportCtx.scale(2, 2);
+            const originalCanvas = canvas;
+            const originalCtx = ctx;
+            canvas = exportCanvas;
+            ctx = exportCtx;
+            
+            drawAdvancedButton();
+            
+            // Restore original canvas
+            canvas = originalCanvas;
+            ctx = originalCtx;
+            
+            // Download
+            const link = document.createElement('a');
+            const filename = `roblox-button-${currentButton.text.toLowerCase().replace(/\s+/g, '-')}.${format}`;
+            link.download = filename;
+            link.href = exportCanvas.toDataURL(`image/${format}`, format === 'jpeg' ? 0.9 : 1);
+            link.click();
+            
+            showToast(`Image HD téléchargée en ${format.toUpperCase()}!`, 'success');
+        }
+
+        // Generate Roblox code
+        function generateRobloxCode() {
+            const buttonName = currentButton.text.replace(/\s+/g, '');
+            const robloxCode = `-- ${currentButton.text} Button généré par RobloxAI
+local ${buttonName}Button = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
+local UIStroke = Instance.new("UIStroke")
+
+-- Configuration du bouton
+${buttonName}Button.Name = "${buttonName}Button"
+${buttonName}Button.Size = UDim2.new(0, 200, 0, 60)
+${buttonName}Button.Position = UDim2.new(0.5, -100, 0.5, -30)
+${buttonName}Button.BackgroundColor3 = Color3.fromHex("${currentButton.color1}")
+${buttonName}Button.Text = "${currentButton.text}"
+${buttonName}Button.TextColor3 = Color3.fromHex("${currentButton.textColor}")
+${buttonName}Button.TextSize = ${currentButton.textSize}
+${buttonName}Button.Font = Enum.Font.SourceSansBold
+
+-- Coin arrondi
+UICorner.CornerRadius = UDim.new(0, ${currentButton.shape === 'circle' ? 50 : currentButton.shape === 'rounded' ? 12 : 0})
+UICorner.Parent = ${buttonName}Button
+
+${currentButton.backgroundType === 'gradient' ? `-- Gradient
+UIGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromHex("${currentButton.color1}")),
+    ColorSequenceKeypoint.new(1, Color3.fromHex("${currentButton.color2}"))
+}
+UIGradient.Parent = ${buttonName}Button` : ''}
+
+${currentButton.effects.stroke ? `-- Contour
+UIStroke.Thickness = 2
+UIStroke.Color = Color3.fromHex("${currentButton.textColor}")
+UIStroke.Parent = ${buttonName}Button` : ''}
+
+${currentButton.effects.glow ? `-- Effet Glow
+${buttonName}Button.BackgroundTransparency = 0.1
+local SelectionBox = Instance.new("SelectionBox")
+SelectionBox.Color3 = Color3.fromHex("${currentButton.color1}")
+SelectionBox.Transparency = 0.5
+SelectionBox.Adornee = ${buttonName}Button` : ''}
+
+-- Événement de clic
+${buttonName}Button.MouseButton1Click:Connect(function()
+    print("${currentButton.text} cliqué!")
+    -- Ajoutez votre logique ici
+end)
+
+-- Animation hover (optionnel)
+${buttonName}Button.MouseEnter:Connect(function()
+    ${buttonName}Button:TweenSize(UDim2.new(0, 210, 0, 63), "Out", "Quad", 0.2)
+end)
+
+${buttonName}Button.MouseLeave:Connect(function()
+    ${buttonName}Button:TweenSize(UDim2.new(0, 200, 0, 60), "Out", "Quad", 0.2)
+end)`;
+
+            document.getElementById('robloxCode').textContent = robloxCode;
+            document.getElementById('robloxCodeOutput').classList.remove('hidden');
+            showToast('Code Roblox généré!', 'success');
+        }
+
+        // Copy Roblox code
+        function copyRobloxCode() {
+            const code = document.getElementById('robloxCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Code Roblox copié!', 'success');
+            }).catch(() => {
+                showToast('Erreur lors de la copie.', 'error');
+            });
+        }
+
+        // Use template
+        function useTemplate(templateType) {
+            const templates = {
+                gaming: `-- Menu Gaming Moderne
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local PlayButton = Instance.new("TextButton")
+local ShopButton = Instance.new("TextButton")
+local SettingsButton = Instance.new("TextButton")
+local QuitButton = Instance.new("TextButton")
+
+ScreenGui.Name = "GamingMenu"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.Size = UDim2.new(0, 400, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(13, 17, 23)
+MainFrame.BorderSizePixel = 0
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = MainFrame
+
+TitleLabel.Name = "TitleLabel"
+TitleLabel.Parent = MainFrame
+TitleLabel.Size = UDim2.new(1, 0, 0, 60)
+TitleLabel.Position = UDim2.new(0, 0, 0, 20)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "MENU PRINCIPAL"
+TitleLabel.TextColor3 = Color3.fromRGB(0, 162, 255)
+TitleLabel.TextScaled = true
+TitleLabel.Font = Enum.Font.SourceSansBold`,
+                shop: `-- Interface Boutique
+local ScreenGui = Instance.new("ScreenGui")
+local ShopFrame = Instance.new("Frame")
+local HeaderFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local CoinsLabel = Instance.new("TextLabel")
+local ItemsFrame = Instance.new("Frame")
+
+ScreenGui.Name = "ShopGui"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+ShopFrame.Name = "ShopFrame"
+ShopFrame.Parent = ScreenGui
+ShopFrame.Size = UDim2.new(0, 600, 0, 400)
+ShopFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+ShopFrame.BackgroundColor3 = Color3.fromRGB(21, 26, 35)
+ShopFrame.BorderSizePixel = 0`,
+                settings: `-- Panneau de Paramètres
+local ScreenGui = Instance.new("ScreenGui")
+local SettingsFrame = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local VolumeSlider = Instance.new("Frame")
+local GraphicsToggle = Instance.new("TextButton")
+
+ScreenGui.Name = "SettingsGui"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+SettingsFrame.Name = "SettingsFrame"
+SettingsFrame.Parent = ScreenGui
+SettingsFrame.Size = UDim2.new(0, 450, 0, 350)
+SettingsFrame.Position = UDim2.new(0.5, -225, 0.5, -175)
+SettingsFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+SettingsFrame.BorderSizePixel = 0`
+            };
+
+            const code = templates[templateType];
+            if (code) {
+                navigator.clipboard.writeText(code).then(() => {
+                    showToast(`Template ${templateType} copié dans le presse-papiers!`, 'success');
+                }).catch(() => {
+                    showToast('Erreur lors de la copie du template.', 'error');
+                });
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initCanvas();
+        });
+    </script>
+</body>
+</html>
